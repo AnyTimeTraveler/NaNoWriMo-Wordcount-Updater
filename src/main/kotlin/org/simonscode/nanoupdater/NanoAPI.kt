@@ -8,16 +8,15 @@ import java.security.MessageDigest
 object NanoAPI {
     fun updateCount(username: String, key: String, wordcount: Int) {
         val wc = wordcount.toString()
-        val hash = hashString("SHA-1", key+username+wc).toLowerCase()
+        val hash = hashString("SHA-1", key + username + wc).toLowerCase()
         try {
-
             Jsoup.connect("https://nanowrimo.org/api/wordcount")
                     .method(Connection.Method.PUT)
                     .data("hash", hash)
                     .data("name", username)
                     .data("wordcount", wc)
                     .execute()
-        } catch (e: HttpStatusException){
+        } catch (e: HttpStatusException) {
             LogWindow.log("ERROR while updating. Please check your username and secret key in the config file.\n")
         }
     }

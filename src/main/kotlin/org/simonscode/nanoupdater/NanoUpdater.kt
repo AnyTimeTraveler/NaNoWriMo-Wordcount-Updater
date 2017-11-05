@@ -17,8 +17,8 @@ fun main(args: Array<String>) {
     if (config.doumentPath.isEmpty() || config.minutesBetweenUpdates == 0)
         config.firstRun = true
 
-    var username: String
-    var secretKey: String
+    val username: String
+    val secretKey: String
     if (config.firstRun) {
         NanoUpdater.setup()
     }
@@ -104,15 +104,12 @@ object NanoUpdater {
         LogWindow.log("Found $wordcount words.\n")
         if (config.wordcount != wordcount) {
             LogWindow.log("Detected changed wordcount since last time this program ran. Updating...\n")
-            val username = Config.get().username
-            val key = Config.get().secretKey
-            updateCount(username, key, wordcount)
+            updateCount(config.username, config.secretKey, wordcount)
             LogWindow.log("Done!\n")
             Config.get().wordcount = wordcount
             Config.get().save()
         }
         LogWindow.log("I will check the wordcount every " + config.minutesBetweenUpdates + " minutes from now on.\n")
-        val timer = timer
         val interval = (config.minutesBetweenUpdates * 60 * 1000).toLong()
         timer.scheduleAtFixedRate(Checker(file), interval, interval)
     }
@@ -124,9 +121,7 @@ object NanoUpdater {
             LogWindow.log("Done!\n$newWordcount words read: ")
             if (newWordcount != Config.get().wordcount) {
                 Config.get().wordcount = newWordcount
-                val username = Config.get().username
-                val key = Config.get().secretKey
-                updateCount(username, key, newWordcount)
+                updateCount(config.username, config.secretKey, newWordcount)
                 Config.get().save()
                 LogWindow.log("Updating Website!\n")
             } else {
