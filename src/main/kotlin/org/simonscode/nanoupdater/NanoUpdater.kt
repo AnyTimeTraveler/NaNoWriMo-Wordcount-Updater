@@ -1,10 +1,7 @@
 package org.simonscode.nanoupdater
 
+import org.apache.tika.parser.AutoDetectParser
 import org.apache.tika.parser.ParseContext
-import org.apache.tika.parser.microsoft.OfficeParser
-import org.apache.tika.parser.microsoft.ooxml.OOXMLParser
-import org.apache.tika.parser.odf.OpenDocumentParser
-import org.apache.tika.parser.rtf.RTFParser
 import org.apache.tika.sax.BodyContentHandler
 import org.jsoup.Connection
 import org.jsoup.Jsoup
@@ -17,7 +14,7 @@ private val config = Config.get()
 private val timer = Timer()
 
 fun main(args: Array<String>) {
-    println("If you are reading this, you can safely ignore the following warnings.")
+    println("Program Log:\nPlease copy this when reporting a bug.")
     if (config.doumentPath.isEmpty() || config.minutesBetweenUpdates == 0)
         config.firstRun = true
 
@@ -128,37 +125,10 @@ object NanoUpdater {
         val metadata = org.apache.tika.metadata.Metadata()
         val pcontext = ParseContext()
 
-        val filetype = file.name.substring(file.name.indexOf(".") + 1)
-        val text = when (filetype) {
-            "rtf" -> {
-                RTFParser().parse(file.inputStream(), handler, metadata, pcontext)
-                handler.toString()
-            }
-            "docx" -> {
-                OOXMLParser().parse(file.inputStream(), handler, metadata, pcontext)
-                handler.toString()
-            }
-            "doc" -> {
-                OfficeParser().parse(file.inputStream(), handler, metadata, pcontext)
-                handler.toString()
-            }
-            "odt" -> {
-                OpenDocumentParser().parse(file.inputStream(), handler, metadata, pcontext)
-                handler.toString()
-            }
-            "txt" -> {
-                file.readText()
-            }
-            else -> {
-                JOptionPane.showMessageDialog(null, "I can't handle $filetype, yet.\nAsk Simon to implement it.", "Error", JOptionPane.ERROR_MESSAGE)
-                System.exit(-1)
-                "ERROR"
-            }
-        }
+        AutoDetectParser().parse(file.inputStream(), handler, metadata, pcontext)
         val regex = Regex("\\S+")
-        return regex.findAll(text).count()
+        return regex.findAll(handler.toString()).count()
     }
-
 
     fun updateCount(wordcount: Int) {
         Jsoup.connect("https://nanowrimo.org" + noveId)
