@@ -16,7 +16,7 @@ A small java program that automatically updates your [NaNoWriMo](https://nanowri
 
 The program mimics the same procedure that you would undergo when updating your wordcount on the website, but reduces the strain on their servers a lot, since it doesn't load images or JavaScript from their webpages.
 
-#License
+# License
 
 This project uses The unlicense.
 This essentially means you are free to do anything with it.
