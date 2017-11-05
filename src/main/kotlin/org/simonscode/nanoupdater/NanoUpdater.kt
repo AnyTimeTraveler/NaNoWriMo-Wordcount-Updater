@@ -27,6 +27,7 @@ fun main(args: Array<String>) {
             username = JOptionPane.showInputDialog(null, "NaNoWriMo Username:", "Login", JOptionPane.QUESTION_MESSAGE)
             secretKey = JOptionPane.showInputDialog(null, "NaNoWriMo Secret key (from nanowrimo.org/api/wordcount)", "Key", JOptionPane.QUESTION_MESSAGE)
         } catch (e: IllegalStateException) {
+            e.printStackTrace()
             return
         }
 
@@ -80,17 +81,11 @@ object NanoUpdater {
         config.save()
     }
 
-
     fun getWordcount(file: File): Int {
         val handler = BodyContentHandler(-1)
-        val metadata = org.apache.tika.metadata.Metadata()
-        val pcontext = ParseContext()
-
-        AutoDetectParser().parse(file.inputStream(), handler, metadata, pcontext)
-        val regex = Regex("\\S+")
-        return regex.findAll(handler.toString()).count()
+        AutoDetectParser().parse(file.inputStream(), handler, org.apache.tika.metadata.Metadata(), ParseContext())
+        return handler.toString().trim().split("\\s+|/".toRegex()).size
     }
-
 
     fun startWatching() {
         LogWindow.isVisible = true

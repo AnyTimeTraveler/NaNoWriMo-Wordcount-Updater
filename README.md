@@ -14,7 +14,7 @@ A small java program that automatically updates your [NaNoWriMo](https://nanowri
  - Remember your credentials (optional) (careful, credentials are stored in plain text)
  - Remembers wordcounts between restarts
 
-The program mimics the same procedure that you would undergo when updating your wordcount on the website, but reduces the strain on their servers a lot, since it doesn't load images or JavaScript from their webpages.
+Special Thanks to [Kevin Alberts](https://github.com/Kurocon) for the implementation of the NaNoWriMo-API.
 
 # License
 

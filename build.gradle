@@ -1,5 +1,5 @@
 group = 'org.simonscode'
-version = '1.0.1'
+version = '1.0.3'
 
 buildscript {
     ext.kotlin_version = '1.1.51'
@@ -13,7 +13,6 @@ buildscript {
         classpath group: 'org.jetbrains.kotlin', name: 'kotlin-gradle-plugin', version: kotlin_version
         classpath "com.github.jengelman.gradle.plugins:shadow:2.0.1"
     }
-
 }
 
 apply plugin: 'idea'
