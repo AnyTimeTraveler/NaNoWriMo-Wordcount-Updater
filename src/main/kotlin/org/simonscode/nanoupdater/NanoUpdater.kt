@@ -12,14 +12,16 @@ import javax.swing.JOptionPane
 private val config = Config.get()
 private val timer = Timer()
 
+private val latestVersion = "1.0.3"
+
 fun main(args: Array<String>) {
     println("Program Log:\nPlease copy this when reporting a bug.")
     if (config.doumentPath.isEmpty() || config.minutesBetweenUpdates == 0)
-        config.firstRun = true
+        config.currentVersion = "0.0"
 
     val username: String
     val secretKey: String
-    if (config.firstRun) {
+    if (config.currentVersion != "1.0.4") {
         NanoUpdater.setup()
     }
     if (config.username.isEmpty() || config.secretKey.isEmpty()) {
@@ -27,6 +29,7 @@ fun main(args: Array<String>) {
             username = JOptionPane.showInputDialog(null, "NaNoWriMo Username:", "Login", JOptionPane.QUESTION_MESSAGE)
             secretKey = JOptionPane.showInputDialog(null, "NaNoWriMo Secret key (from nanowrimo.org/api/wordcount)", "Key", JOptionPane.QUESTION_MESSAGE)
         } catch (e: IllegalStateException) {
+            e.printStackTrace()
             return
         }
 
@@ -54,7 +57,11 @@ object NanoUpdater {
 
         config.doumentPath = fileChoser.selectedFile.absolutePath
 
-        val timeInput = JOptionPane.showInputDialog(null, "How many Minutes minumum between updating your wordcount?", "Step 2/3", JOptionPane.QUESTION_MESSAGE)
+        if (config.doumentPath.substring(config.doumentPath.lastIndexOf(".") + 1) == "scrivx") {
+
+        }
+
+        val timeInput = JOptionPane.showInputDialog(null, "How many Minutes minumum between updating your wordcount?", "Step 2/4", JOptionPane.QUESTION_MESSAGE)
         var time = 0
         try {
             time = timeInput.toInt()
@@ -65,7 +72,18 @@ object NanoUpdater {
 
         config.minutesBetweenUpdates = time
 
-        val credentialsInput = JOptionPane.showConfirmDialog(null, "Do you want me to store the Credentials to the Website?", "Setup 3/3", JOptionPane.YES_NO_OPTION)
+        val offestInput = JOptionPane.showInputDialog(null, "Do you want to offset your wordcount?", 0)
+        var offset = 0
+        try {
+            offset = offestInput.toInt()
+        } catch (e: NumberFormatException) {
+            JOptionPane.showMessageDialog(null, "I need you to enter a valid Integer.\nTry again.", "Error", JOptionPane.ERROR_MESSAGE)
+            System.exit(-1)
+        }
+
+        config.offset = offset
+
+        val credentialsInput = JOptionPane.showConfirmDialog(null, "Do you want me to store the Credentials to the Website?", "Setup 4/4", JOptionPane.YES_NO_OPTION)
         config.storeCredentials = when (credentialsInput) {
             JOptionPane.YES_OPTION -> true
             JOptionPane.NO_OPTION -> false
@@ -75,35 +93,34 @@ object NanoUpdater {
             }
         }
 
-        config.firstRun = false
+        config.currentVersion = latestVersion
         JOptionPane.showMessageDialog(null, "Setup complete!")
         config.save()
     }
 
-
     fun getWordcount(file: File): Int {
-        val handler = BodyContentHandler(-1)
-        val metadata = org.apache.tika.metadata.Metadata()
-        val pcontext = ParseContext()
-
-        AutoDetectParser().parse(file.inputStream(), handler, metadata, pcontext)
-        val regex = Regex("\\S+")
-        return regex.findAll(handler.toString()).count()
+        return if (file.name.endsWith(".scrivx")) {
+            LogWindow.log("Can't do Scrivener-Files just yet.")
+            0
+        } else {
+            val handler = BodyContentHandler(-1)
+            AutoDetectParser().parse(file.inputStream(), handler, org.apache.tika.metadata.Metadata(), ParseContext())
+            handler.toString().trim().split("\\s+|/".toRegex()).size - config.offset
+        }
     }
-
 
     fun startWatching() {
         LogWindow.isVisible = true
         val file = File(config.doumentPath)
         if (!file.exists()) {
-            config.firstRun = true
+            config.currentVersion = "0.0"
             config.save()
         }
         LogWindow.log("Starting to watch: " + file.name + "\n")
         val wordcount = getWordcount(file)
         LogWindow.log("Found $wordcount words.\n")
         if (config.wordcount != wordcount) {
-            LogWindow.log("Detected changed wordcount since last time this program ran. Updating...\n")
+            LogWindow.log("Detected changed wordcount since last time this program ran.\nUpdating...\n")
             updateCount(config.username, config.secretKey, wordcount)
             LogWindow.log("Done!\n")
             Config.get().wordcount = wordcount
