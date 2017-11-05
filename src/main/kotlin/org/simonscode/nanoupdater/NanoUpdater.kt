@@ -17,34 +17,25 @@ fun main(args: Array<String>) {
     if (config.doumentPath.isEmpty() || config.minutesBetweenUpdates == 0)
         config.firstRun = true
 
-    var username = ""
-    var password: String
+    var username: String
+    var secretKey: String
     if (config.firstRun) {
         NanoUpdater.setup()
     }
-    if (config.username.isEmpty() || config.password.isEmpty()) {
-        do {
-            try {
-                username = if (username.isEmpty())
-                    JOptionPane.showInputDialog(null, "NaNoWriMo Username:", "Login", JOptionPane.QUESTION_MESSAGE)
-                else
-                    JOptionPane.showInputDialog(null, "Login failed, please try again.\nNaNoWriMo Username:", "Error", JOptionPane.ERROR_MESSAGE)
-                password = JOptionPane.showInputDialog(null, "NaNoWriMo Password:", "Login", JOptionPane.QUESTION_MESSAGE)
-            } catch (e: IllegalStateException) {
-                return
-            }
-        } while (!NanoAPI.login(username, password))
+    if (config.username.isEmpty() || config.secretKey.isEmpty()) {
+        try {
+            username = JOptionPane.showInputDialog(null, "NaNoWriMo Username:", "Login", JOptionPane.QUESTION_MESSAGE)
+            secretKey = JOptionPane.showInputDialog(null, "NaNoWriMo Secret key (from nanowrimo.org/api/wordcount)", "Key", JOptionPane.QUESTION_MESSAGE)
+        } catch (e: IllegalStateException) {
+            return
+        }
 
         if (config.storeCredentials) {
             config.username = username
-            config.password = password
+            config.secretKey = secretKey
             config.save()
         }
-    } else {
-        username = config.username
-        password = config.password
     }
-    NanoAPI.login(username, password)
     NanoUpdater.startWatching()
 }
 
@@ -112,8 +103,10 @@ object NanoUpdater {
         val wordcount = getWordcount(file)
         LogWindow.log("Found $wordcount words.\n")
         if (config.wordcount != wordcount) {
-            LogWindow.log("Detected changed wordcount since last time this program ran. Updating...")
-            NanoAPI.updateCount(wordcount)
+            LogWindow.log("Detected changed wordcount since last time this program ran. Updating...\n")
+            val username = Config.get().username
+            val key = Config.get().secretKey
+            updateCount(username, key, wordcount)
             LogWindow.log("Done!\n")
             Config.get().wordcount = wordcount
             Config.get().save()
@@ -131,7 +124,9 @@ object NanoUpdater {
             LogWindow.log("Done!\n$newWordcount words read: ")
             if (newWordcount != Config.get().wordcount) {
                 Config.get().wordcount = newWordcount
-                updateCount(newWordcount)
+                val username = Config.get().username
+                val key = Config.get().secretKey
+                updateCount(username, key, newWordcount)
                 Config.get().save()
                 LogWindow.log("Updating Website!\n")
             } else {
@@ -146,8 +141,6 @@ object NanoUpdater {
             LogWindow.log("Shutting down...\n")
             config.save()
             timer.cancel()
-            LogWindow.log("Logging out from NaNoWriMo-Website...")
-            NanoAPI.signOut()
             LogWindow.log("Done!\n\n")
             LogWindow.log("Good bye!")
             Thread.sleep(500)

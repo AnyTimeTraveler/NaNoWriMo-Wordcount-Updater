@@ -11,7 +11,7 @@ class Config private constructor() {
     var minutesBetweenUpdates = 0
     var storeCredentials = false
     var username = ""
-    var password = ""
+    var secretKey = ""
     var wordcount = 0
 
     @JvmOverloads
