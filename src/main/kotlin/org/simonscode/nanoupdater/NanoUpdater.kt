@@ -3,8 +3,7 @@ package org.simonscode.nanoupdater
 import org.apache.tika.parser.AutoDetectParser
 import org.apache.tika.parser.ParseContext
 import org.apache.tika.sax.BodyContentHandler
-import org.jsoup.Connection
-import org.jsoup.Jsoup
+import org.simonscode.nanoupdater.NanoAPI.updateCount
 import java.io.File
 import java.util.*
 import javax.swing.JFileChooser
@@ -34,7 +33,7 @@ fun main(args: Array<String>) {
             } catch (e: IllegalStateException) {
                 return
             }
-        } while (!NanoUpdater.login(username, password))
+        } while (!NanoAPI.login(username, password))
 
         if (config.storeCredentials) {
             config.username = username
@@ -45,16 +44,11 @@ fun main(args: Array<String>) {
         username = config.username
         password = config.password
     }
-    NanoUpdater.login(username, password)
+    NanoAPI.login(username, password)
     NanoUpdater.startWatching()
 }
 
 object NanoUpdater {
-    private var loggedIn = false
-    private var userCredentialsCookie = ""
-    private var nanoSessionCookie = ""
-    private var authenticityToken = ""
-    private var noveId = ""
 
     fun setup() {
         val fileChoser = JFileChooser()
@@ -95,30 +89,6 @@ object NanoUpdater {
         config.save()
     }
 
-    fun login(username: String, password: String): Boolean {
-        if (loggedIn)
-            return true
-        LogWindow.log("Logging into NaNoWriMo...")
-        val jsoup = Jsoup.connect("https://nanowrimo.org/sign_in")
-                .method(Connection.Method.POST)
-                .followRedirects(true)
-                .data("user_session[name]", username)
-                .data("user_session[password]", password)
-                .execute()
-        if (jsoup.statusCode() != 200 || !jsoup.hasCookie("user_credentials"))
-            return false
-
-        userCredentialsCookie = jsoup.cookie("user_credentials")
-        nanoSessionCookie = jsoup.cookie("_nanowrimo_session")
-        val doc = jsoup.parse()
-        val updateForm = doc.getElementById("menu_novel_word_count_form")
-        authenticityToken = updateForm.getElementsByAttributeValueMatching("name", "authenticity_token").first().attr("value")
-        noveId = updateForm.attr("action")
-
-        loggedIn = true
-        LogWindow.log("Success!\n")
-        return true
-    }
 
     fun getWordcount(file: File): Int {
         val handler = BodyContentHandler()
@@ -130,30 +100,6 @@ object NanoUpdater {
         return regex.findAll(handler.toString()).count()
     }
 
-    fun updateCount(wordcount: Int) {
-        Jsoup.connect("https://nanowrimo.org" + noveId)
-                .method(Connection.Method.POST)
-                .followRedirects(true)
-                .header("Content-Type", "multipart/form-data")
-                .data("utf8", "✓")
-                .data("_method", "put")
-                .data("authenticity_token", authenticityToken)
-                .data("novel[session_counting]", "false")
-                .data("novel[word_count]", wordcount.toString())
-                .data("novel[session_word_count]", "0")
-                .data("commit", "Update")
-                .cookie("_nanowrimo_session", nanoSessionCookie)
-                .cookie("user_credentials", userCredentialsCookie)
-                .execute()
-    }
-
-    private fun signOut() {
-        Jsoup.connect("https://nanowrimo.org/sign_out")
-                .method(Connection.Method.GET)
-                .cookie("_nanowrimo_session", nanoSessionCookie)
-                .cookie("user_credentials", userCredentialsCookie)
-                .execute()
-    }
 
     fun startWatching() {
         LogWindow.isVisible = true
@@ -167,24 +113,26 @@ object NanoUpdater {
         LogWindow.log("Found $wordcount words.\n")
         if (config.wordcount != wordcount) {
             LogWindow.log("Detected changed wordcount since last time this program ran. Updating...")
-            updateCount(wordcount)
+            NanoAPI.updateCount(wordcount)
             LogWindow.log("Done!\n")
-
+            Config.get().wordcount = wordcount
+            Config.get().save()
         }
         LogWindow.log("I will check the wordcount every " + config.minutesBetweenUpdates + " minutes from now on.\n")
         val timer = timer
         val interval = (config.minutesBetweenUpdates * 60 * 1000).toLong()
-        timer.scheduleAtFixedRate(Checker(file, wordcount), interval, interval)
+        timer.scheduleAtFixedRate(Checker(file), interval, interval)
     }
 
-    private class Checker(val file: File, var wordcount: Int) : TimerTask() {
+    private class Checker(val file: File) : TimerTask() {
         override fun run() {
             LogWindow.log("Rechecking Wordcount...")
             val newWordcount = getWordcount(file)
             LogWindow.log("Done!\n$newWordcount words read: ")
-            if (newWordcount != wordcount) {
-                wordcount = newWordcount
+            if (newWordcount != Config.get().wordcount) {
+                Config.get().wordcount = newWordcount
                 updateCount(newWordcount)
+                Config.get().save()
                 LogWindow.log("Updating Website!\n")
             } else {
                 LogWindow.log("No Update required!\n")
@@ -199,7 +147,7 @@ object NanoUpdater {
             config.save()
             timer.cancel()
             LogWindow.log("Logging out from NaNoWriMo-Website...")
-            NanoUpdater.signOut()
+            NanoAPI.signOut()
             LogWindow.log("Done!\n\n")
             LogWindow.log("Good bye!")
             Thread.sleep(500)
