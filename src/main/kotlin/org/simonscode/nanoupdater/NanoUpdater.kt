@@ -82,7 +82,7 @@ object NanoUpdater {
 
 
     fun getWordcount(file: File): Int {
-        val handler = BodyContentHandler()
+        val handler = BodyContentHandler(-1)
         val metadata = org.apache.tika.metadata.Metadata()
         val pcontext = ParseContext()
 
