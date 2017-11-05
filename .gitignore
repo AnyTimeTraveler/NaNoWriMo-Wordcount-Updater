@@ -1,0 +1,7 @@
+.gradle/
+.idea/
+NanoUpdater.iml
+*.jar
+build/
+out/
+config.json
