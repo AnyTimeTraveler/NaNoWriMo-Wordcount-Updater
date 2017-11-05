@@ -18,6 +18,7 @@ object NanoAPI {
                     .execute()
         } catch (e: HttpStatusException) {
             LogWindow.log("ERROR while updating. Please check your username and secret key in the config file.\n")
+            e.printStackTrace()
         }
     }
 

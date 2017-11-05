@@ -6,13 +6,14 @@ import com.google.gson.JsonSyntaxException
 import java.io.*
 
 class Config private constructor() {
-    var firstRun = true
+    var currentVersion = "0.0"
     var doumentPath = ""
     var minutesBetweenUpdates = 0
     var storeCredentials = false
     var username = ""
     var secretKey = ""
     var wordcount = 0
+    var offset = 0
 
     @JvmOverloads
     fun save(file: File = File(CONFIGFILE)) {
