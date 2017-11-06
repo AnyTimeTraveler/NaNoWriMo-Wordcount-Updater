@@ -14,6 +14,7 @@ class Config private constructor() {
     var secretKey = ""
     var wordcount = 0
     var offset = 0
+    var scrivenerFolder = ""
 
     @JvmOverloads
     fun save(file: File = File(CONFIGFILE)) {
@@ -68,4 +69,5 @@ class Config private constructor() {
             }
         }
     }
+
 }

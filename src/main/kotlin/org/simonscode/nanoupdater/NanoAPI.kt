@@ -7,6 +7,10 @@ import java.security.MessageDigest
 
 object NanoAPI {
     fun updateCount(username: String, key: String, wordcount: Int) {
+        if (wordcount < 0) {
+            println("Negative wordcount: $wordcount. Not updating.")
+            return
+        }
         val wc = wordcount.toString()
         val hash = hashString("SHA-1", key + username + wc).toLowerCase()
         try {
@@ -17,7 +21,7 @@ object NanoAPI {
                     .data("wordcount", wc)
                     .execute()
         } catch (e: HttpStatusException) {
-            LogWindow.log("ERROR while updating. Please check your username and secret key in the config file.\n")
+            LogWindow.log("\nERROR while updating. Please check your username and secret key in the config file.\n")
             e.printStackTrace()
         }
     }

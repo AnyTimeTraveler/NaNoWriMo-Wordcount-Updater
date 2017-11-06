@@ -12,7 +12,7 @@ import javax.swing.JOptionPane
 private val config = Config.get()
 private val timer = Timer()
 
-private val latestVersion = "1.0.3"
+private val latestVersion = "1.1"
 
 fun main(args: Array<String>) {
     println("Program Log:\nPlease copy this when reporting a bug.")
@@ -21,7 +21,7 @@ fun main(args: Array<String>) {
 
     val username: String
     val secretKey: String
-    if (config.currentVersion != "1.0.4") {
+    if (config.currentVersion != latestVersion) {
         NanoUpdater.setup()
     }
     if (config.username.isEmpty() || config.secretKey.isEmpty()) {
@@ -58,7 +58,13 @@ object NanoUpdater {
         config.doumentPath = fileChoser.selectedFile.absolutePath
 
         if (config.doumentPath.substring(config.doumentPath.lastIndexOf(".") + 1) == "scrivx") {
-
+            val scrivenerFolders = ScrivenerSupport.getScrivenerFolders(fileChoser.selectedFile)
+            val selectedFolder = JOptionPane.showInputDialog(null, "Which Scrivener Folder should I watch?", "Scrivener Setup", JOptionPane.QUESTION_MESSAGE, null, scrivenerFolders.keys.toTypedArray(), scrivenerFolders.keys.first())
+            if (!scrivenerFolders.containsKey(selectedFolder)) {
+                JOptionPane.showMessageDialog(null, "I need you to select an option.\nTry again.", "Error", JOptionPane.ERROR_MESSAGE)
+                System.exit(-1)
+            }
+            config.scrivenerFolder = scrivenerFolders[selectedFolder]!!
         }
 
         val timeInput = JOptionPane.showInputDialog(null, "How many Minutes minumum between updating your wordcount?", "Step 2/4", JOptionPane.QUESTION_MESSAGE)
@@ -100,8 +106,7 @@ object NanoUpdater {
 
     fun getWordcount(file: File): Int {
         return if (file.name.endsWith(".scrivx")) {
-            LogWindow.log("Can't do Scrivener-Files just yet.")
-            0
+            ScrivenerSupport.getWordcount()
         } else {
             val handler = BodyContentHandler(-1)
             AutoDetectParser().parse(file.inputStream(), handler, org.apache.tika.metadata.Metadata(), ParseContext())
@@ -120,7 +125,7 @@ object NanoUpdater {
         val wordcount = getWordcount(file)
         LogWindow.log("Found $wordcount words.\n")
         if (config.wordcount != wordcount) {
-            LogWindow.log("Detected changed wordcount since last time this program ran.\nUpdating...\n")
+            LogWindow.log("Detected changed wordcount since last time this program ran.\nUpdating...")
             updateCount(config.username, config.secretKey, wordcount)
             LogWindow.log("Done!\n")
             Config.get().wordcount = wordcount
@@ -145,19 +150,17 @@ object NanoUpdater {
                 LogWindow.log("No Update required!\n")
             }
         }
-
     }
 
     fun shutdown() {
-        val t = Thread {
-            LogWindow.log("Shutting down...\n")
+        Thread {
+            LogWindow.log("\n\nShutting down...")
             config.save()
             timer.cancel()
             LogWindow.log("Done!\n\n")
             LogWindow.log("Good bye!")
             Thread.sleep(500)
             System.exit(0)
-        }
-        t.start()
+        }.start()
     }
 }
