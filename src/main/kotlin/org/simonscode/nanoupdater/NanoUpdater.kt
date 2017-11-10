@@ -12,7 +12,7 @@ import javax.swing.JOptionPane
 private val config = Config.get()
 private val timer = Timer()
 
-private val latestVersion = "1.1"
+private val latestVersion = "1.2"
 
 fun main(args: Array<String>) {
     println("Program Log:\nPlease copy this when reporting a bug.")
@@ -46,7 +46,7 @@ object NanoUpdater {
 
     fun setup() {
         val fileChoser = JFileChooser()
-        fileChoser.currentDirectory = File(System.getProperty("user.home"))
+        fileChoser.currentDirectory = if (config.doumentPath.isNotEmpty()) File(config.doumentPath) else File(System.getProperty("user.home"))
 
         val option = fileChoser.showOpenDialog(null)
 
@@ -133,13 +133,13 @@ object NanoUpdater {
         }
         LogWindow.log("I will check the wordcount every " + config.minutesBetweenUpdates + " minutes from now on.\n")
         val interval = (config.minutesBetweenUpdates * 60 * 1000).toLong()
-        timer.scheduleAtFixedRate(Checker(file), interval, interval)
+        timer.scheduleAtFixedRate(Checker, interval, interval)
     }
 
-    private class Checker(val file: File) : TimerTask() {
+    object Checker : TimerTask() {
         override fun run() {
             LogWindow.log("Rechecking Wordcount...")
-            val newWordcount = getWordcount(file)
+            val newWordcount = getWordcount(File(config.doumentPath))
             LogWindow.log("Done!\n$newWordcount words read: ")
             if (newWordcount != Config.get().wordcount) {
                 Config.get().wordcount = newWordcount
