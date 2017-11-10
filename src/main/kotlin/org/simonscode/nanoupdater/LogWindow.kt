@@ -1,17 +1,10 @@
 package org.simonscode.nanoupdater
 
-/*
-Logging In Java with the JDK 1.4 Logging API and Apache log4j
-by Samudra Gupta
-Apress Copyright 2003
-ISBN:1590590996
-
-*/
-
 import java.awt.BorderLayout
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import javax.swing.*
+import javax.swing.text.DefaultCaret
 
 
 object LogWindow : JFrame("NaNoWriMo Updater") {
@@ -34,17 +27,19 @@ object LogWindow : JFrame("NaNoWriMo Updater") {
         textArea.isEditable = false
         textArea.wrapStyleWord = true
         textArea.lineWrap = true
+        val caret = textArea.caret as DefaultCaret
+        caret.updatePolicy = DefaultCaret.ALWAYS_UPDATE
 
-        val pane = JScrollPane(textArea)
-        pane.horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
-        pane.verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
-        pane.autoscrolls = true
+        val scrollPane = JScrollPane(textArea)
+        scrollPane.horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+        scrollPane.verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
+
 
         val refreshButton = JButton("Refresh now")
         refreshButton.addActionListener { Thread(NanoUpdater.Checker).start() }
 
         contentPane.layout = BorderLayout()
-        contentPane.add(pane, BorderLayout.CENTER)
+        contentPane.add(scrollPane, BorderLayout.CENTER)
         contentPane.add(refreshButton, BorderLayout.SOUTH)
 
         textArea.text = "Welcome to Simon's NaNoWriMo Updater!\n" +
@@ -56,7 +51,6 @@ object LogWindow : JFrame("NaNoWriMo Updater") {
 
     fun log(message: String) {
         textArea.append(message)
-        this.contentPane.validate()
     }
 
     private class CloseListener : WindowAdapter() {

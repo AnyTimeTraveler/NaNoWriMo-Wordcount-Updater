@@ -12,7 +12,7 @@ import javax.swing.JOptionPane
 private val config = Config.get()
 private val timer = Timer()
 
-private val latestVersion = "1.2"
+private val latestVersion = "1.2.1"
 
 fun main(args: Array<String>) {
     println("Program Log:\nPlease copy this when reporting a bug.")
