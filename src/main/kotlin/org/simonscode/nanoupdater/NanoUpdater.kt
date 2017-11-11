@@ -121,43 +121,39 @@ object NanoUpdater {
             config.currentVersion = "0.0"
             config.save()
         }
-        LogWindow.log("Starting to watch: " + file.name + "\n")
+        LogWindow.log("Starting to watch: " + file.name)
         val wordcount = getWordcount(file)
-        LogWindow.log("Found $wordcount words.\n")
+        LogWindow.log("Found $wordcount words.")
         if (config.wordcount != wordcount) {
-            LogWindow.log("Detected changed wordcount since last time this program ran.\nUpdating...")
             updateCount(config.username, config.secretKey, wordcount)
-            LogWindow.log("Done!\n")
+            LogWindow.log("Detected changed wordcount from ${config.wordcount} to $wordcount. Updated website!")
             Config.get().wordcount = wordcount
             Config.get().save()
         }
-        LogWindow.log("I will check the wordcount every " + config.minutesBetweenUpdates + " minutes from now on.\n")
+        LogWindow.log("I will check the wordcount every " + config.minutesBetweenUpdates + " minutes from now on.")
         val interval = (config.minutesBetweenUpdates * 60 * 1000).toLong()
         timer.scheduleAtFixedRate(Checker, interval, interval)
     }
 
     object Checker : TimerTask() {
         override fun run() {
-            LogWindow.log("Rechecking Wordcount...")
             val newWordcount = getWordcount(File(config.doumentPath))
-            LogWindow.log("Done!\n$newWordcount words read: ")
+            LogWindow.updateWordcount(config.wordcount, newWordcount)
             if (newWordcount != Config.get().wordcount) {
                 Config.get().wordcount = newWordcount
                 updateCount(config.username, config.secretKey, newWordcount)
                 Config.get().save()
-                LogWindow.log("Updating Website!\n")
             } else {
-                LogWindow.log("No Update required!\n")
             }
         }
     }
 
     fun shutdown() {
         Thread {
-            LogWindow.log("\n\nShutting down...")
+            LogWindow.log("\nShutting down...")
             config.save()
             timer.cancel()
-            LogWindow.log("Done!\n\n")
+            LogWindow.log("Done!\n")
             LogWindow.log("Good bye!")
             Thread.sleep(500)
             System.exit(0)

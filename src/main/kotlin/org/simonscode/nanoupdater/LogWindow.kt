@@ -1,14 +1,19 @@
 package org.simonscode.nanoupdater
 
 import java.awt.BorderLayout
+import java.awt.Font
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
+import java.text.DecimalFormat
+import java.text.SimpleDateFormat
+import java.util.*
 import javax.swing.*
 import javax.swing.text.DefaultCaret
 
 
 object LogWindow : JFrame("NaNoWriMo Updater") {
     private val textArea: JTextArea
+    private val formatter = SimpleDateFormat("HH:mm")
 
     init {
         try {
@@ -27,13 +32,13 @@ object LogWindow : JFrame("NaNoWriMo Updater") {
         textArea.isEditable = false
         textArea.wrapStyleWord = true
         textArea.lineWrap = true
+        textArea.font = Font(Font.MONOSPACED, Font.PLAIN, 14)
         val caret = textArea.caret as DefaultCaret
         caret.updatePolicy = DefaultCaret.ALWAYS_UPDATE
 
         val scrollPane = JScrollPane(textArea)
         scrollPane.horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
         scrollPane.verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
-
 
         val refreshButton = JButton("Refresh now")
         refreshButton.addActionListener { Thread(NanoUpdater.Checker).start() }
@@ -49,8 +54,24 @@ object LogWindow : JFrame("NaNoWriMo Updater") {
                 "Author: Simon Struck (https://github.com/Simon70/NaNoWriMo-Wordcount-Updater)\n\n\n"
     }
 
+    fun updateWordcount(old: Int, new: Int) {
+        val nf = DecimalFormat.getInstance(Locale("de", "DE"))
+        textArea.append(String.format("[%s] %s => %s\n", formatter.format(Date()), format(new - old, 6), nf.format(new)))
+    }
+
     fun log(message: String) {
-        textArea.append(message)
+        textArea.append(String.format("[%s] %s\n", formatter.format(Date()), message))
+    }
+
+    private fun format(number: Int, space: Int): String {
+        val sb = StringBuilder()
+        (2..space - number.toString().length).forEach { sb.append(' ') }
+        if (number > 0)
+            sb.append('+')
+        else
+            sb.append(' ')
+        sb.append(number)
+        return sb.toString()
     }
 
     private class CloseListener : WindowAdapter() {

@@ -48,7 +48,7 @@ object ScrivenerSupport {
         } else {
             Config.get().currentVersion = "0.0"
             Config.get().save()
-            LogWindow.log("\n\nERROR! Could not find requested Scrivener folder!\n\n")
+            LogWindow.log("\nERROR! Could not find requested Scrivener folder!\n")
             -1
         }
     }
