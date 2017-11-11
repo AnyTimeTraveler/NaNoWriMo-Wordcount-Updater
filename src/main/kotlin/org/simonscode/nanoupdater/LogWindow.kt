@@ -1,6 +1,7 @@
 package org.simonscode.nanoupdater
 
 import java.awt.BorderLayout
+import java.awt.FlowLayout
 import java.awt.Font
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
@@ -14,6 +15,9 @@ import javax.swing.text.DefaultCaret
 object LogWindow : JFrame("NaNoWriMo Updater") {
     private val textArea: JTextArea
     private val formatter = SimpleDateFormat("HH:mm")
+    private val wordsAtStartOfSession = Config.get().currentWordcount
+    private val wordsSinceStartOfSession = JLabel("Session: 0")
+    private val wordsSinceStartOfDay = JLabel("Today: 0")
 
     init {
         try {
@@ -43,12 +47,17 @@ object LogWindow : JFrame("NaNoWriMo Updater") {
         val refreshButton = JButton("Refresh now")
         refreshButton.addActionListener { Thread(NanoUpdater.Checker).start() }
 
+        val bottomPanel = JPanel(FlowLayout())
+        bottomPanel.add(wordsSinceStartOfDay)
+        bottomPanel.add(refreshButton)
+        bottomPanel.add(wordsSinceStartOfSession)
+
         contentPane.layout = BorderLayout()
         contentPane.add(scrollPane, BorderLayout.CENTER)
-        contentPane.add(refreshButton, BorderLayout.SOUTH)
+        contentPane.add(bottomPanel, BorderLayout.SOUTH)
 
         textArea.text = "Welcome to Simon's NaNoWriMo Updater!\n" +
-                "I am going to watch your novel and update your wordcount whenever you make progress!\n" +
+                "I am going to watch your novel and update your currentWordcount whenever you make progress!\n" +
                 "To change parameters after the initial setup, move the document or edit the file config.json by hand.\n" +
                 "Have fun writing!\n\n" +
                 "Author: Simon Struck (https://github.com/Simon70/NaNoWriMo-Wordcount-Updater)\n\n\n"
@@ -56,11 +65,15 @@ object LogWindow : JFrame("NaNoWriMo Updater") {
 
     fun updateWordcount(old: Int, new: Int) {
         val nf = DecimalFormat.getInstance(Locale("de", "DE"))
+        wordsSinceStartOfSession.text = "Session: " + nf.format(new - wordsAtStartOfSession)
+        wordsSinceStartOfDay.text = "Today: " + nf.format(new - Config.get().wordcountAtStartOfDay)
         textArea.append(String.format("[%s] %s => %s\n", formatter.format(Date()), format(new - old, 6), nf.format(new)))
+        revalidate()
     }
 
     fun log(message: String) {
         textArea.append(String.format("[%s] %s\n", formatter.format(Date()), message))
+        revalidate()
     }
 
     private fun format(number: Int, space: Int): String {

@@ -27,7 +27,7 @@ fun main(args: Array<String>) {
     if (config.username.isEmpty() || config.secretKey.isEmpty()) {
         try {
             username = JOptionPane.showInputDialog(null, "NaNoWriMo Username:", "Login", JOptionPane.QUESTION_MESSAGE)
-            secretKey = JOptionPane.showInputDialog(null, "NaNoWriMo Secret key (from nanowrimo.org/api/wordcount)", "Key", JOptionPane.QUESTION_MESSAGE)
+            secretKey = JOptionPane.showInputDialog(null, "NaNoWriMo Secret key (from nanowrimo.org/api/currentWordcount)", "Key", JOptionPane.QUESTION_MESSAGE)
         } catch (e: IllegalStateException) {
             e.printStackTrace()
             return
@@ -67,7 +67,7 @@ object NanoUpdater {
             config.scrivenerFolder = scrivenerFolders[selectedFolder]!!
         }
 
-        val timeInput = JOptionPane.showInputDialog(null, "How many Minutes minumum between updating your wordcount?", "Step 2/4", JOptionPane.QUESTION_MESSAGE)
+        val timeInput = JOptionPane.showInputDialog(null, "How many Minutes minumum between updating your currentWordcount?", "Step 2/4", JOptionPane.QUESTION_MESSAGE)
         var time = 0
         try {
             time = timeInput.toInt()
@@ -78,7 +78,7 @@ object NanoUpdater {
 
         config.minutesBetweenUpdates = time
 
-        val offestInput = JOptionPane.showInputDialog(null, "Do you want to offset your wordcount?", 0)
+        val offestInput = JOptionPane.showInputDialog(null, "Do you want to offset your currentWordcount?", 0)
         var offset = 0
         try {
             offset = offestInput.toInt()
@@ -99,6 +99,7 @@ object NanoUpdater {
             }
         }
 
+        config.dateAtStartOfDay = getTodaysDate()
         config.currentVersion = latestVersion
         JOptionPane.showMessageDialog(null, "Setup complete!")
         config.save()
@@ -115,6 +116,11 @@ object NanoUpdater {
     }
 
     fun startWatching() {
+        if (getTodaysDate() != config.dateAtStartOfDay) {
+            config.wordcountAtStartOfDay = config.currentWordcount
+            config.dateAtStartOfDay = getTodaysDate()
+            config.save()
+        }
         LogWindow.isVisible = true
         val file = File(config.doumentPath)
         if (!file.exists()) {
@@ -122,15 +128,15 @@ object NanoUpdater {
             config.save()
         }
         LogWindow.log("Starting to watch: " + file.name)
+        LogWindow.log("I will check the wordcount every " + config.minutesBetweenUpdates + " minutes from now on.\n")
         val wordcount = getWordcount(file)
-        LogWindow.log("Found $wordcount words.")
-        if (config.wordcount != wordcount) {
+        LogWindow.updateWordcount(config.currentWordcount, wordcount)
+        if (config.currentWordcount != wordcount) {
             updateCount(config.username, config.secretKey, wordcount)
-            LogWindow.log("Detected changed wordcount from ${config.wordcount} to $wordcount. Updated website!")
-            Config.get().wordcount = wordcount
-            Config.get().save()
+            LogWindow.log("Detected changed wordcount from ${config.currentWordcount} to $wordcount. Updated website!")
+            config.currentWordcount = wordcount
+            config.save()
         }
-        LogWindow.log("I will check the wordcount every " + config.minutesBetweenUpdates + " minutes from now on.")
         val interval = (config.minutesBetweenUpdates * 60 * 1000).toLong()
         timer.scheduleAtFixedRate(Checker, interval, interval)
     }
@@ -138,9 +144,9 @@ object NanoUpdater {
     object Checker : TimerTask() {
         override fun run() {
             val newWordcount = getWordcount(File(config.doumentPath))
-            LogWindow.updateWordcount(config.wordcount, newWordcount)
-            if (newWordcount != Config.get().wordcount) {
-                Config.get().wordcount = newWordcount
+            LogWindow.updateWordcount(config.currentWordcount, newWordcount)
+            if (newWordcount != Config.get().currentWordcount) {
+                Config.get().currentWordcount = newWordcount
                 updateCount(config.username, config.secretKey, newWordcount)
                 Config.get().save()
             } else {
@@ -148,13 +154,19 @@ object NanoUpdater {
         }
     }
 
+    @Suppress("UsePropertyAccessSyntax")
+    private fun getTodaysDate(): Int {
+        val c = Calendar.getInstance()
+        c.setTime(Date())
+        return c.get(Calendar.DAY_OF_MONTH)
+    }
+
     fun shutdown() {
         Thread {
-            LogWindow.log("\nShutting down...")
+            LogWindow.log("Shutting down...\n")
             config.save()
             timer.cancel()
-            LogWindow.log("Done!\n")
-            LogWindow.log("Good bye!")
+            LogWindow.log("Good bye!\n\n\n")
             Thread.sleep(500)
             System.exit(0)
         }.start()

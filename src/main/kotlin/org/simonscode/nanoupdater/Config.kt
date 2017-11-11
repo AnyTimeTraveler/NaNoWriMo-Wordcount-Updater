@@ -12,9 +12,11 @@ class Config private constructor() {
     var storeCredentials = false
     var username = ""
     var secretKey = ""
-    var wordcount = 0
+    var currentWordcount = 0
     var offset = 0
     var scrivenerFolder = ""
+    var wordcountAtStartOfDay = 0
+    var dateAtStartOfDay = 0
 
     @JvmOverloads
     fun save(file: File = File(CONFIGFILE)) {
