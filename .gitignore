@@ -1,7 +1,10 @@
-.gradle/
-.idea/
-NanoUpdater.iml
+/.gradle/
+/.idea/
+*.iml
+*.ipr
+*.iws
 *.jar
-build/
-out/
-config.json
+/build/
+/out/
+/test/
+*.json

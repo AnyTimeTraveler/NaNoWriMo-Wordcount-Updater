@@ -1,6 +1,6 @@
 # NaNoWriMo Updater
 
-A small java program that automatically updates your [NaNoWriMo](https://nanowrimo.org/) wordcount while you write.
+A small java program that automatically updates your [NaNoWriMo](https://nanowrimo.org/) targetWordcount while you write.
 
 ### Supported Filetypes:
  - TXT
