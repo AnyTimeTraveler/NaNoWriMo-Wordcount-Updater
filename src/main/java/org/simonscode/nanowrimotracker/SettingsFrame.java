@@ -23,6 +23,7 @@ class SettingsFrame extends JFrame {
                     Config.get().save();
                     NaNoWriMoTracker.switchFromSettingsToLogWindow();
                 } else {
+                    //TODO: Inform user what config values are missing
                     NaNoWriMoTracker.shutdown();
                 }
             }

@@ -33,7 +33,7 @@ public class Config {
 
     List<WordGoal> customWordGoals = new ArrayList<>();
 
-    Map<Date, Integer> wordcounts = new HashMap<>();
+    Map<Long, Integer> wordcounts = new HashMap<>();
 
     private Config() {
         customWordGoals.add(new WordGoal("First 100 words!", 100, WordGoal.Type.FIXED));

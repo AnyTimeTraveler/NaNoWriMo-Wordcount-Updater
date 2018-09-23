@@ -67,8 +67,8 @@ class LogWindow extends JFrame {
         getContentPane().add(scrollPane, BorderLayout.CENTER);
         getContentPane().add(bottomPanel, BorderLayout.SOUTH);
 
-        // TODO: Fix message (url)
-        textArea.setText("Welcome to Simon's NaNoWriMo Updater!\n" + "I am going to watch your novel and update your currentWordcount whenever you make progress!\n" + "To change parameters after the initial setup, move the document or edit the file config.json by hand.\n" + "Have fun writing!\n\n" + "Simon Author Struck (https://github.com/Simon70/NaNoWriMo-Wordcount-Updater)\n\n\n");
+        textArea.setText("NaNoWriMo Tracker running!\n" +
+                "Have a good writing session!\n\n");
     }
 
     void updateWordcount(int oldCount, int newCount) {
