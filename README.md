@@ -1,18 +1,22 @@
-# NaNoWriMo Updater
+# NaNoWriMo Tracker
 
-A small java program that automatically updates your [NaNoWriMo](https://nanowrimo.org/) targetWordcount while you write.
+A small program that tracks your writing progress and can update your [NaNoWriMo](https://nanowrimo.org/) wordcount while you write.
 
-### Supported Filetypes:
- - TXT
- - RTF
- - ODT
- - DOC
- - DOCX
+### Supported Filetypes
+ - Text Files (TXT, RTF)
+ - Word Documents (ODT, DOC, DOCX)
+ - Scrivener Projects (SCRIV)
+ - More upon request
 
-### Features:
- - Remember the file you were working on
- - Remember your credentials (optional) (careful, credentials are stored in plain text)
- - Remembers wordcounts between restarts
+### Features
+ - Updates your wordcount on the [NaNoWriMo website](https://nanowrimo.org/)
+ - Keeps track of your writing progress
+ - Autodetects your document type
+ - Specify your own custom wordgoals
+ 
+### Planned Features
+ - Fancy charts to show your writing progress
+ - Private Servers, so you can use the tool also outside of [NaNoWriMo](https://nanowrimo.org/)
 
 Special Thanks to [Kevin Alberts](https://github.com/Kurocon) for the implementation of the NaNoWriMo-API.
 
