@@ -1,7 +1,5 @@
 package org.simonscode.nanowrimotracker.wordcounter;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 import java.io.File;
 import java.nio.file.Files;
 import java.util.Collections;
@@ -31,7 +29,7 @@ public class TextFileCounter implements IWordcounter {
 
     @Override
     public int getWordcount(File path, String secondarySelection) {
-        throw new NotImplementedException();
+        throw new RuntimeException("Not implemented!");
     }
 
     @Override

@@ -3,7 +3,6 @@ package org.simonscode.nanowrimotracker.wordcounter;
 import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.sax.BodyContentHandler;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -38,7 +37,7 @@ public class WordFileCounter implements IWordcounter {
 
     @Override
     public int getWordcount(File path, String secondarySelection) {
-        throw new NotImplementedException();
+        throw new RuntimeException("Not implemented!");
     }
 
     @Override

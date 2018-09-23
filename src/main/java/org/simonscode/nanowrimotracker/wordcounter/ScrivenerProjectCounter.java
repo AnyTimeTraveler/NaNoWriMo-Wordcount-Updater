@@ -3,7 +3,6 @@ package org.simonscode.nanowrimotracker.wordcounter;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
@@ -32,7 +31,7 @@ public class ScrivenerProjectCounter implements IWordcounter {
 
     @Override
     public int getWordcount(File path) {
-        throw new NotImplementedException();
+        throw new RuntimeException("Not implemented!");
     }
 
     @Override
