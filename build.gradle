@@ -18,8 +18,16 @@ dependencies {
 }
 
 jar {
-    from { configurations.runtime.collect { it.isDirectory() ? it : zipTree(it) } }
     mainClassName = 'org.simonscode.nanowrimotracker.NaNoWriMoTracker'
     baseName = 'NaNoWriMoTracker'
     destinationDir = new File("./releases/")
+
+    from { configurations.runtime.collect { it.isDirectory() ? it : zipTree(it) } }
+    manifest {
+        attributes(
+                "Implementation-Title": project.name,
+                "Implementation-Version": version,
+                "Main-Class": mainClassName,
+        )
+    }
 }

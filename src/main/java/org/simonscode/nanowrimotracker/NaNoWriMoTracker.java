@@ -7,6 +7,7 @@ public class NaNoWriMoTracker {
     private static WordcountChecker wordcountChecker;
     private static final LogWindow logWindow = new LogWindow();
     private static final SettingsFrame settingsFrame = new SettingsFrame();
+    private static final SystemTrayManager trayManager = new SystemTrayManager();
 
     public static void main(String[] args) {
         // check if config is sane
@@ -69,6 +70,7 @@ public class NaNoWriMoTracker {
         (new Thread(() -> {
             log("Shutting down...\n");
             config.save();
+            trayManager.close();
             log("Good bye!\n\n\n");
             try {
                 Thread.sleep(500);
