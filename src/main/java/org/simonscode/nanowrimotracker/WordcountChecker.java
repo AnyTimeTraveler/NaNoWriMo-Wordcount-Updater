@@ -3,12 +3,14 @@ package org.simonscode.nanowrimotracker;
 import org.simonscode.nanowrimotracker.wordcounter.IWordcounter;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 public class WordcountChecker extends Thread {
 
     private boolean running = true;
     private final IWordcounter wordcounter;
-    private boolean previousUnchanged = false;
 
     WordcountChecker(IWordcounter wordcounter) {
         this.wordcounter = wordcounter;
@@ -33,26 +35,21 @@ public class WordcountChecker extends Thread {
                 }
 
                 // If wordcount has changed, record and show it
-                if (lastWordcount != wordcount || !previousUnchanged) {
-                    previousUnchanged = lastWordcount == wordcount;
-
-                    Storage.get().wordCountTimes.add(System.currentTimeMillis());
+                if (lastWordcount != wordcount) {
+                    Storage.get().wordCountTimes.add(new Date());
                     Storage.get().wordCountAmounts.add(wordcount);
 
-                    // Explicitly recheck if the wordcounts are different, so as to not needlessly spam online services
-                    if (lastWordcount != wordcount) {
-                        switch (Storage.get().serverSelection) {
-                            case OFFICIAL:
-                                NanoAPI.updateCount(Storage.get().officialUsername, Storage.get().officialSecretKey, wordcount);
-                                break;
-                            case PRIVATE:
-                                // TODO: Implement private servers
-                                break;
-                            case OFFLINE:
-                            default:
-                                // Do nothing
-                                break;
-                        }
+                    switch (Storage.get().serverSelection) {
+                        case OFFICIAL:
+                            NanoAPI.updateCount(Storage.get().officialUsername, Storage.get().officialSecretKey, wordcount);
+                            break;
+                        case PRIVATE:
+                            // TODO: Implement private servers
+                            break;
+                        case OFFLINE:
+                        default:
+                            // Do nothing
+                            break;
                     }
 
                     checkAndNotifyWordgoals(wordcount);
@@ -72,11 +69,15 @@ public class WordcountChecker extends Thread {
     }
 
     private void checkAndNotifyWordgoals(int wordcount) {
+        List<WordGoal> toRemove = new ArrayList<>();
         for (WordGoal wg : Storage.get().customWordGoals) {
             if (wg.hasBeenReached(wordcount)) {
                 NaNoWriMoTracker.getTrayManager().pushNotification("Goal reached!", "You have reached your goal:\n" + wg.getCompletionMessage());
+                toRemove.add(wg);
             }
         }
+
+        Storage.get().customWordGoals.removeAll(toRemove);
     }
 
     /**

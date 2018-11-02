@@ -6,17 +6,16 @@ import com.google.gson.JsonSyntaxException;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class Storage {
-    // Configfile name;
-    private static String CONFIGFILE = "config.json";
+    // filename;
+    private static String FILENAME = "nanotracker-data.json";
     private static Storage instance = null;
 
     boolean firstRun = true;
-
-    boolean showFullGraph = false;
 
     String projectLocation = "";
     String projectType = "";
@@ -35,7 +34,7 @@ public class Storage {
 
     List<WordGoal> customWordGoals = new ArrayList<>();
 
-    List<Long> wordCountTimes = new ArrayList<>();
+    List<Date> wordCountTimes = new ArrayList<>();
     List<Integer> wordCountAmounts = new ArrayList<>();
 
     transient int wordCountIndexAtSessionStart = 0;
@@ -49,12 +48,12 @@ public class Storage {
 
         // Add initial values, so XChart doesn't crash when rendering the liveChart
         // Yes, this is actual intended behaviour, somehow
-        wordCountTimes.add(System.currentTimeMillis());
+        wordCountTimes.add(new Date());
         wordCountAmounts.add(0);
     }
 
     private static void load() {
-        load(new File(CONFIGFILE));
+        load(new File(FILENAME));
     }
 
     private static void load(File file) {
@@ -80,7 +79,7 @@ public class Storage {
     }
 
     void save() {
-        save(new File(CONFIGFILE));
+        save(new File(FILENAME));
     }
 
     private void save(File file) {

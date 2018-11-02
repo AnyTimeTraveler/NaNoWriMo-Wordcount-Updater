@@ -13,6 +13,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 
@@ -24,23 +25,18 @@ class LogWindow extends JFrame {
     private JLabel wordsSinceStartOfDay = new JLabel("0 Today");
     private final XYChart liveChart;
     private final XChartPanel<XYChart> liveChartPanel;
+    private final JCheckBox showOnlyCurrentSessionCheckBox;
+
+    private boolean firstUpdate = true;
 
     LogWindow() {
-        super("NaNoWriMo Updater");
+        super("NaNoWriMo Wordcount Tracker and Updater");
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception ignored) {
 
         }
 
-        // TODO: Add checkbox to show entire graph
-        // TODO: Fix x-axis of graph (currently only long timestamps)
-        liveChart = new XYChart(800, 400, Styler.ChartTheme.XChart);
-        Storage storage = Storage.get();
-        liveChart.addSeries("Wordcount",
-                storage.wordCountTimes.subList(storage.wordCountIndexAtSessionStart, storage.wordCountTimes.size()),
-                storage.wordCountAmounts.subList(storage.wordCountIndexAtSessionStart, storage.wordCountAmounts.size()));
-        liveChartPanel = new XChartPanel<>(liveChart);
         setSize(800, 600);
         setResizable(true);
         setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
@@ -49,6 +45,18 @@ class LogWindow extends JFrame {
                 NaNoWriMoTracker.shutdown();
             }
         });
+
+        showOnlyCurrentSessionCheckBox = new JCheckBox("Show only this session", false);
+        showOnlyCurrentSessionCheckBox.addActionListener(e -> updateGraph());
+        JPanel liveChartWrapperPanel = new JPanel(new BorderLayout());
+
+        liveChart = new XYChart(800, 400, Styler.ChartTheme.XChart);
+        liveChart.addSeries("Wordcount", Storage.get().wordCountTimes, Storage.get().wordCountAmounts);
+        liveChart.setXAxisLabelOverrideMap(ChartTimescaler.generateDateOverrideMap(Storage.get().wordCountTimes));
+        liveChartPanel = new XChartPanel<>(liveChart);
+
+        liveChartWrapperPanel.add(liveChartPanel, BorderLayout.CENTER);
+        liveChartWrapperPanel.add(showOnlyCurrentSessionCheckBox, BorderLayout.SOUTH);
 
         textArea = new JTextArea();
         textArea.setEditable(false);
@@ -75,7 +83,7 @@ class LogWindow extends JFrame {
         bottomPanel.add(wordsSinceStartOfSession);
 
         getContentPane().setLayout(new BorderLayout());
-        getContentPane().add(liveChartPanel, BorderLayout.NORTH);
+        getContentPane().add(liveChartWrapperPanel, BorderLayout.NORTH);
         getContentPane().add(scrollPane, BorderLayout.CENTER);
         getContentPane().add(bottomPanel, BorderLayout.SOUTH);
 
@@ -84,19 +92,28 @@ class LogWindow extends JFrame {
     }
 
     void showUpdatedWordcount(int oldCount, int newCount) {
+        if (firstUpdate) {
+            firstUpdate = false;
+            showOnlyCurrentSessionCheckBox.setSelected(true);
+        }
         NumberFormat nf = DecimalFormat.getInstance(new Locale("de", "DE"));
         wordsSinceStartOfSession.setText("Session: " + nf.format(newCount - wordsAtStartOfSession));
         wordsSinceStartOfDay.setText("Today: " + nf.format(newCount - Storage.get().wordcountAtStartOfDay));
         textArea.append(String.format("[%s] %s => %s\n", formatter.format(new Date()), format(newCount - oldCount), nf.format(newCount)));
+        updateGraph();
+        revalidate();
+    }
 
+    private void updateGraph() {
         Storage storage = Storage.get();
+        List<Date> xData = showOnlyCurrentSessionCheckBox.isSelected() ? storage.wordCountTimes.subList(storage.wordCountIndexAtSessionStart, storage.wordCountTimes.size()) : storage.wordCountTimes;
         liveChart.updateXYSeries("Wordcount",
-                storage.wordCountTimes.subList(storage.wordCountIndexAtSessionStart, storage.wordCountTimes.size()),
-                storage.wordCountAmounts.subList(storage.wordCountIndexAtSessionStart, storage.wordCountAmounts.size())
+                xData,
+                showOnlyCurrentSessionCheckBox.isSelected() ? storage.wordCountAmounts.subList(storage.wordCountIndexAtSessionStart, storage.wordCountAmounts.size()) : storage.wordCountAmounts
                 , null);
+        liveChart.setXAxisLabelOverrideMap(ChartTimescaler.generateDateOverrideMap(xData));
         liveChartPanel.revalidate();
         liveChartPanel.repaint();
-        revalidate();
     }
 
     void log(String message) {
