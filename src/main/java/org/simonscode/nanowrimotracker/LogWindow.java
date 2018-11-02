@@ -1,5 +1,9 @@
 package org.simonscode.nanowrimotracker;
 
+import org.knowm.xchart.XChartPanel;
+import org.knowm.xchart.XYChart;
+import org.knowm.xchart.style.Styler;
+
 import javax.swing.*;
 import javax.swing.text.DefaultCaret;
 import java.awt.*;
@@ -15,9 +19,11 @@ import java.util.Locale;
 class LogWindow extends JFrame {
     private JTextArea textArea;
     private SimpleDateFormat formatter = new SimpleDateFormat("HH:mm");
-    private int wordsAtStartOfSession = Config.get().currentWordcount;
+    private int wordsAtStartOfSession = Storage.get().wordCountAmounts.isEmpty() ? 0 : Storage.get().wordCountAmounts.get(Storage.get().wordCountAmounts.size() - 1);
     private JLabel wordsSinceStartOfSession = new JLabel("0 Session");
     private JLabel wordsSinceStartOfDay = new JLabel("0 Today");
+    private final XYChart liveChart;
+    private final XChartPanel<XYChart> liveChartPanel;
 
     LogWindow() {
         super("NaNoWriMo Updater");
@@ -27,10 +33,15 @@ class LogWindow extends JFrame {
 
         }
 
-        //TODO: Make prettier
-        //TODO: Add live chart
-
-        setSize(600, 400);
+        // TODO: Add checkbox to show entire graph
+        // TODO: Fix x-axis of graph (currently only long timestamps)
+        liveChart = new XYChart(800, 400, Styler.ChartTheme.XChart);
+        Storage storage = Storage.get();
+        liveChart.addSeries("Wordcount",
+                storage.wordCountTimes.subList(storage.wordCountIndexAtSessionStart, storage.wordCountTimes.size()),
+                storage.wordCountAmounts.subList(storage.wordCountIndexAtSessionStart, storage.wordCountAmounts.size()));
+        liveChartPanel = new XChartPanel<>(liveChart);
+        setSize(800, 600);
         setResizable(true);
         setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
@@ -64,6 +75,7 @@ class LogWindow extends JFrame {
         bottomPanel.add(wordsSinceStartOfSession);
 
         getContentPane().setLayout(new BorderLayout());
+        getContentPane().add(liveChartPanel, BorderLayout.NORTH);
         getContentPane().add(scrollPane, BorderLayout.CENTER);
         getContentPane().add(bottomPanel, BorderLayout.SOUTH);
 
@@ -71,17 +83,30 @@ class LogWindow extends JFrame {
                 "Have a good writing session!\n\n");
     }
 
-    void updateWordcount(int oldCount, int newCount) {
+    void showUpdatedWordcount(int oldCount, int newCount) {
         NumberFormat nf = DecimalFormat.getInstance(new Locale("de", "DE"));
         wordsSinceStartOfSession.setText("Session: " + nf.format(newCount - wordsAtStartOfSession));
-        wordsSinceStartOfDay.setText("Today: " + nf.format(newCount - Config.get().wordcountAtStartOfDay));
+        wordsSinceStartOfDay.setText("Today: " + nf.format(newCount - Storage.get().wordcountAtStartOfDay));
         textArea.append(String.format("[%s] %s => %s\n", formatter.format(new Date()), format(newCount - oldCount), nf.format(newCount)));
+
+        Storage storage = Storage.get();
+        liveChart.updateXYSeries("Wordcount",
+                storage.wordCountTimes.subList(storage.wordCountIndexAtSessionStart, storage.wordCountTimes.size()),
+                storage.wordCountAmounts.subList(storage.wordCountIndexAtSessionStart, storage.wordCountAmounts.size())
+                , null);
+        liveChartPanel.revalidate();
+        liveChartPanel.repaint();
         revalidate();
     }
 
     void log(String message) {
         textArea.append(String.format("[%s] %s", formatter.format(new Date()), message));
         revalidate();
+    }
+
+
+    void log(String message, Object... args) {
+        log(String.format(message, args));
     }
 
     private String format(int number) {

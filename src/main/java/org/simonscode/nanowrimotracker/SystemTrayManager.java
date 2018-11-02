@@ -1,17 +1,14 @@
 package org.simonscode.nanowrimotracker;
 
 import javax.imageio.ImageIO;
-import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
-import java.net.URL;
 
 public class SystemTrayManager {
 
     private final boolean supported;
     private final TrayIcon icon;
     private final SystemTray tray;
-    private static final String iconImageLoc = "file:///mnt/data/projects/NaNoWriMoTracker/src/main/resources/book-solid.png";
 
     SystemTrayManager() {
         TrayIcon tempIcon = null;
@@ -25,10 +22,7 @@ public class SystemTrayManager {
             if (supported) {
                 // set up a system tray icon.
                 java.awt.SystemTray tray = java.awt.SystemTray.getSystemTray();
-                URL imageLoc = new URL(iconImageLoc);
-                java.awt.Image image = ImageIO.read(imageLoc);
-//                tempIcon = new java.awt.TrayIcon(image);
-//                Image image = Toolkit.getDefaultToolkit().getImage("book-solid.png");
+                java.awt.Image image = ImageIO.read(SystemTrayManager.class.getResourceAsStream("/book-solid.gif"));
                 tempIcon = new TrayIcon(image, "NaNoWriMo Tracker");
                 tempIcon.setImageAutoSize(true);
                 tray.add(tempIcon);
@@ -52,9 +46,10 @@ public class SystemTrayManager {
         }
     }
 
-    public static void main(String[] args) throws InterruptedException {
-        SystemTrayManager systemTrayManager = new SystemTrayManager();
-        Thread.sleep(5_000);
-        systemTrayManager.close();
-    }
+//    public static void main(String[] args) throws InterruptedException {
+//        SystemTrayManager systemTrayManager = new SystemTrayManager();
+//        systemTrayManager.pushNotification("Title", "Body");
+//        Thread.sleep(5_000);
+//        systemTrayManager.close();
+//    }
 }

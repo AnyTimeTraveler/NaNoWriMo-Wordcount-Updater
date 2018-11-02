@@ -54,14 +54,14 @@ public class SettingsPanel {
         // Project Location Tab
         secondarySelectionPanel.setVisible(false);
         Vector<String> options = new Vector<>();
-        updateProjectLocationSelection(supportedFileTypes, options, new File(Config.get().projectLocation));
+        updateProjectLocationSelection(supportedFileTypes, options, new File(Storage.get().projectLocation));
         selectProjectLocationButton.addActionListener(e -> {
             JFileChooser jfc = new JFileChooser();
             jfc.setAcceptAllFileFilterUsed(false);
             jfc.setMultiSelectionEnabled(false);
             jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-            if (!Config.get().projectLocation.isEmpty()) {
-                File file = new File(Config.get().projectLocation);
+            if (!Storage.get().projectLocation.isEmpty()) {
+                File file = new File(Storage.get().projectLocation);
                 if (file.exists()) {
                     jfc.setSelectedFile(file);
                 }
@@ -78,50 +78,51 @@ public class SettingsPanel {
             jfc.showDialog(contentPane, "Select");
         });
         projectTypeComboBox.addActionListener(e -> {
-            File projectLocation = new File(Config.get().projectLocation);
+            File projectLocation = new File(Storage.get().projectLocation);
             for (IWordcounter wc : supportedFileTypes) {
                 if (options.get(projectTypeComboBox.getSelectedIndex()).startsWith(wc.getName())) {
                     secondarySelectionPanel.setVisible(wc.needsSecondarySelection());
-                    Config.get().projectType = wc.getName();
+                    Storage.get().projectType = wc.getName();
                     generateWordcountPreview(wc, projectLocation);
                     break;
                 }
             }
         });
-        scrivenerFolderComboBox.setSelectedItem(Config.get().secondarySelection);
+        scrivenerFolderComboBox.setSelectedItem(Storage.get().secondarySelection);
         scrivenerFolderComboBox.addActionListener(e -> {
-            File projectLocation = new File(Config.get().projectLocation);
-            Config.get().secondarySelection = (String) scrivenerFolderComboBox.getSelectedItem();
+            File projectLocation = new File(Storage.get().projectLocation);
+            Storage.get().secondarySelection = (String) scrivenerFolderComboBox.getSelectedItem();
             updateWordcountPreviewForScrivenerFolder(supportedFileTypes, options, projectLocation);
         });
-        if (!Config.get().secondarySelection.isEmpty()) {
-            updateWordcountPreviewForScrivenerFolder(supportedFileTypes, options, new File(Config.get().projectLocation));
+        if (!Storage.get().secondarySelection.isEmpty()) {
+            updateWordcountPreviewForScrivenerFolder(supportedFileTypes, options, new File(Storage.get().projectLocation));
         }
 
         // Wordcount Tab
-        timeBetweenUpdatesSpinner.setValue(Config.get().timeBetweenUpdates);
-        timeBetweenUpdatesSpinner.addChangeListener(e -> Config.get().timeBetweenUpdates = (int) timeBetweenUpdatesSpinner.getValue());
+        timeBetweenUpdatesSpinner.setValue(Storage.get().timeBetweenUpdates);
+        timeBetweenUpdatesSpinner.addChangeListener(e -> Storage.get().timeBetweenUpdates = (int) timeBetweenUpdatesSpinner.getValue());
 
-        timeBetweenUpdatesUnitComboBox.setSelectedIndex(Arrays.asList(TimeUnit.SECONDS, TimeUnit.MINUTES, TimeUnit.HOURS, TimeUnit.DAYS).indexOf(Config.get().timeUnitBetweenUpdates));
-        timeBetweenUpdatesUnitComboBox.addActionListener(evt -> Config.get().timeUnitBetweenUpdates = new TimeUnit[]{TimeUnit.SECONDS, TimeUnit.MINUTES, TimeUnit.HOURS, TimeUnit.DAYS}[timeBetweenUpdatesUnitComboBox.getSelectedIndex()]);
+        timeBetweenUpdatesUnitComboBox.setSelectedIndex(Arrays.asList(TimeUnit.SECONDS, TimeUnit.MINUTES, TimeUnit.HOURS, TimeUnit.DAYS).indexOf(Storage.get().timeUnitBetweenUpdates));
+        timeBetweenUpdatesUnitComboBox.addActionListener(evt -> Storage.get().timeUnitBetweenUpdates = new TimeUnit[]{TimeUnit.SECONDS, TimeUnit.MINUTES, TimeUnit.HOURS, TimeUnit.DAYS}[timeBetweenUpdatesUnitComboBox.getSelectedIndex()]);
 
-        wordcountOffsetSpinner.setValue(Config.get().wordcountOffset);
-        wordcountOffsetSpinner.addChangeListener(e -> Config.get().wordcountOffset = (int) wordcountOffsetSpinner.getValue());
+        wordcountOffsetSpinner.setValue(Storage.get().wordcountOffset);
+        wordcountOffsetSpinner.addChangeListener(e -> Storage.get().wordcountOffset = (int) wordcountOffsetSpinner.getValue());
 
         // Server Tab
-        switch (Config.get().serverSelection) {
-            case 0: // Official
+        switch (Storage.get().serverSelection) {
+            case OFFICIAL:
                 officialServerRadioButton.setSelected(true);
                 officialSettingsPanel.setVisible(true);
                 privateSettings.setVisible(false);
                 break;
-            case 1: // Private
+            case PRIVATE:
                 privateServerRadioButton.setSelected(true);
                 //TODO: Implement private servers
+//                privateServerRadioButton.setSelected(true);
 //                officialSettingsPanel.setVisible(false);
 //                privateSettings.setVisible(true);
                 break;
-            case 2: // Offline
+            case OFFLINE:
                 offlineRadioButton.setSelected(true);
                 officialSettingsPanel.setVisible(false);
                 privateSettings.setVisible(false);
@@ -131,39 +132,39 @@ public class SettingsPanel {
             if (e.getSource() == officialServerRadioButton) {
                 officialSettingsPanel.setVisible(true);
                 privateSettings.setVisible(false);
-                Config.get().serverSelection = 0;
+                Storage.get().serverSelection = ServerSelection.OFFICIAL;
             } else //noinspection StatementWithEmptyBody
                 if (e.getSource() == privateServerRadioButton) {
 //                officialSettingsPanel.setVisible(false);
 //                privateSettings.setVisible(true);
-                    Config.get().serverSelection = 1;
+                    Storage.get().serverSelection = ServerSelection.PRIVATE;
                 } else if (e.getSource() == offlineRadioButton) {
                     officialSettingsPanel.setVisible(false);
                     privateSettings.setVisible(false);
-                    Config.get().serverSelection = 2;
+                    Storage.get().serverSelection = ServerSelection.OFFLINE;
                 }
         };
         officialServerRadioButton.addActionListener(serverSelectionListener);
         officialSettingsPanel.setVisible(true);
-        officialUsernameField.setText(Config.get().officialUsername);
-        officialSecretKeyField.setText(Config.get().officialSecretKey);
+        officialUsernameField.setText(Storage.get().officialUsername);
+        officialSecretKeyField.setText(Storage.get().officialSecretKey);
 
         offlineRadioButton.addActionListener(serverSelectionListener);
 
-        privateServerAddressField.setText(Config.get().privateServerAddress);
+        privateServerAddressField.setText(Storage.get().privateServerAddress);
         privateServerRadioButton.addActionListener(serverSelectionListener);
         privateSettings.setVisible(false);
 
         // Wordgoals Tab
         wordgoalsPanel.setLayout(new BoxLayout(wordgoalsPanel, BoxLayout.PAGE_AXIS));
-        List<WordGoal> customWordGoals = Config.get().customWordGoals;
+        List<WordGoal> customWordGoals = Storage.get().customWordGoals;
         customWordGoals.stream()
                 .filter(wg -> wg.getType() == WordGoal.Type.NONE)
                 .forEach(customWordGoals::remove);
         addWordgoalButton.addActionListener(e -> {
             wordgoalsPanel.remove(addWordgoalButton);
             WordGoal wordGoal = new WordGoal();
-            Config.get().customWordGoals.add(wordGoal);
+            Storage.get().customWordGoals.add(wordGoal);
             wordgoalsPanel.add(generateWordgoalLine(wordGoal));
             wordgoalsPanel.add(addWordgoalButton);
             addWordgoalButton.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -185,7 +186,7 @@ public class SettingsPanel {
             projectTypeComboBox.removeAllItems();
             return;
         }
-        Config.get().projectLocation = selectedFile.getAbsolutePath();
+        Storage.get().projectLocation = selectedFile.getAbsolutePath();
         for (IWordcounter wc : supportedFileTypes) {
             if (wc.matches(selectedFile)) {
                 options.add(wc.getName() + " (Detected)");
@@ -261,7 +262,7 @@ public class SettingsPanel {
 
         JButton deleteButton = new JButton("Delete");
         deleteButton.addActionListener(e -> {
-            Config.get().customWordGoals.remove(wg);
+            Storage.get().customWordGoals.remove(wg);
             wordgoalsPanel.remove(panel);
             wordgoalsPanel.revalidate();
         });

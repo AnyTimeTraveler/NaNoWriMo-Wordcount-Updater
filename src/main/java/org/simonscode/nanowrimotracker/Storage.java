@@ -5,15 +5,18 @@ import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class Config {
+public class Storage {
     // Configfile name;
     private static String CONFIGFILE = "config.json";
-    private static Config instance = null;
+    private static Storage instance = null;
 
     boolean firstRun = true;
+
+    boolean showFullGraph = false;
 
     String projectLocation = "";
     String projectType = "";
@@ -22,24 +25,32 @@ public class Config {
     long timeBetweenUpdates = 0L;
     TimeUnit timeUnitBetweenUpdates = TimeUnit.SECONDS;
 
-    int serverSelection = 0; // 0: Official; 1: Private; 2: Offline
+    ServerSelection serverSelection = ServerSelection.OFFICIAL;
     String officialUsername = "";
     String officialSecretKey = "";
     String privateServerAddress = "";
 
-    int currentWordcount = 0;
     int wordcountOffset = 0;
     int wordcountAtStartOfDay = 0;
 
     List<WordGoal> customWordGoals = new ArrayList<>();
 
-    Map<Long, Integer> wordcounts = new HashMap<>();
+    List<Long> wordCountTimes = new ArrayList<>();
+    List<Integer> wordCountAmounts = new ArrayList<>();
 
-    private Config() {
+    transient int wordCountIndexAtSessionStart = 0;
+
+    private Storage() {
+        // Add sample goals
         customWordGoals.add(new WordGoal("First 100 words!", 100, WordGoal.Type.FIXED));
         customWordGoals.add(new WordGoal("First 1.000 words!", 1_000, WordGoal.Type.FIXED));
         customWordGoals.add(new WordGoal("First 10.000 words!", 10_000, WordGoal.Type.FIXED));
         customWordGoals.add(new WordGoal("Daily goal!", 1667, WordGoal.Type.REPEATING));
+
+        // Add initial values, so XChart doesn't crash when rendering the liveChart
+        // Yes, this is actual intended behaviour, somehow
+        wordCountTimes.add(System.currentTimeMillis());
+        wordCountAmounts.add(0);
     }
 
     private static void load() {
@@ -49,19 +60,19 @@ public class Config {
     private static void load(File file) {
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
-            instance = new GsonBuilder().create().fromJson(reader, Config.class);
+            instance = new GsonBuilder().create().fromJson(reader, Storage.class);
         } catch (FileNotFoundException e) {
             if (instance == null) {
-                instance = new Config();
+                instance = new Storage();
                 instance.save();
             }
         } catch (JsonIOException | JsonSyntaxException e) {
-            System.err.println("Config file improperly formatted!");
+            System.err.println("Storage file improperly formatted!");
             e.printStackTrace();
         }
     }
 
-    static Config get() {
+    static Storage get() {
         if (instance == null) {
             load();
         }

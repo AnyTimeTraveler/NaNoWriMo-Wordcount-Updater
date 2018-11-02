@@ -3,41 +3,43 @@ package org.simonscode.nanowrimotracker;
 import org.simonscode.nanowrimotracker.wordcounter.*;
 
 public class NaNoWriMoTracker {
-    private static Config config = Config.get();
+    private static Storage storage = Storage.get();
     private static WordcountChecker wordcountChecker;
     private static final LogWindow logWindow = new LogWindow();
     private static final SettingsFrame settingsFrame = new SettingsFrame();
     private static final SystemTrayManager trayManager = new SystemTrayManager();
 
     public static void main(String[] args) {
-        // check if config is sane
-        if (!config.firstRun && configIsSane()) {
+        // check if storage is sane
+        if (!storage.firstRun && configIsSufficient()) {
             // find correct wordcounter
             IWordcounter currentWC = getSelectedWordcounter();
             // if wordcounter is found, everything is in order, otherwise treat as firstrun
             if (currentWC != null) {
+                // set the index of the start of the new session
+                storage.wordCountIndexAtSessionStart = storage.wordCountAmounts.size() < 2 ? 0 : storage.wordCountAmounts.size() - 2;
                 logWindow.setVisible(true);
                 settingsFrame.setVisible(false);
                 settingsFrame.hideWelcomeTab();
                 wordcountChecker = new WordcountChecker(currentWC);
                 wordcountChecker.start();
             } else {
-                config.firstRun = true;
-                config.save();
+                storage.firstRun = true;
+                storage.save();
             }
         }
         // if firstrun then show settings first
-        if (config.firstRun) {
+        if (storage.firstRun) {
             logWindow.setVisible(false);
             settingsFrame.setVisible(true);
         }
     }
 
-    static boolean configIsSane() {
-        return !config.projectLocation.isEmpty()
-                && !config.projectType.isEmpty()
-                && config.timeUnitBetweenUpdates != null
-                && config.timeBetweenUpdates != 0;
+    static boolean configIsSufficient() {
+        return !storage.projectLocation.isEmpty()
+                && !storage.projectType.isEmpty()
+                && storage.timeUnitBetweenUpdates != null
+                && storage.timeBetweenUpdates != 0;
     }
 
     /**
@@ -46,7 +48,7 @@ public class NaNoWriMoTracker {
     private static IWordcounter getSelectedWordcounter() {
         IWordcounter selectedWC = null;
         for (IWordcounter wc : getWordcounters()) {
-            if (wc.getName().equals(Config.get().projectType)) {
+            if (wc.getName().equals(Storage.get().projectType)) {
                 selectedWC = wc;
                 break;
             }
@@ -54,13 +56,17 @@ public class NaNoWriMoTracker {
         return selectedWC;
     }
 
-    /**
-     * Logs a string to the logFrame
-     *
-     * @param line String to appear on the LogFrame. Newline needs to be added as well.
-     */
-    static void log(String line) {
-        logWindow.log(line);
+
+    public static LogWindow getLogWindow() {
+        return logWindow;
+    }
+
+    public static SettingsFrame getSettingsFrame() {
+        return settingsFrame;
+    }
+
+    public static SystemTrayManager getTrayManager() {
+        return trayManager;
     }
 
     /**
@@ -68,21 +74,16 @@ public class NaNoWriMoTracker {
      */
     static void shutdown() {
         (new Thread(() -> {
-            log("Shutting down...\n");
-            config.save();
+            logWindow.log("Shutting down...\n");
+            storage.save();
             trayManager.close();
-            log("Good bye!\n\n\n");
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            logWindow.log("Good bye!\n\n\n");
             System.exit(0);
         })).start();
     }
 
     /**
-     * Reload the config values into the wordcounter and restart it.
+     * Reload the storage values into the wordcounter and restart it.
      * Prints to log is something fails.
      */
     static void reload() {
@@ -94,7 +95,7 @@ public class NaNoWriMoTracker {
             wordcountChecker = new WordcountChecker(selectedWordcounter);
             wordcountChecker.start();
         } else {
-            log("Something went wrong, please check the project location in the settings.\n");
+            logWindow.log("Something went wrong, please check the project location in the settings.\n");
         }
     }
 
@@ -107,14 +108,11 @@ public class NaNoWriMoTracker {
         };
     }
 
-    static void updateWordcount(int currentWordcount, int wordcount) {
-        logWindow.updateWordcount(currentWordcount, wordcount);
-    }
-
     static void switchFromSettingsToLogWindow() {
         logWindow.setVisible(true);
         reload();
     }
+
     static void switchFromLogWindowToSettings() {
         wordcountChecker.stopRunning();
         wordcountChecker = null;

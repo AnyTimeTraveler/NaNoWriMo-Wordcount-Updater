@@ -59,4 +59,16 @@ public class WordGoal {
         REPEATING,
         NONE,
     }
+
+    public String getCompletionMessage() {
+        switch (type) {
+            case FIXED:
+                return String.format("%s at %d Words", name, targetWordcount);
+            case REPEATING:
+                return String.format("%s %d times", name, lastReach / targetWordcount);
+            case NONE:
+            default:
+                return "Error";
+        }
+    }
 }

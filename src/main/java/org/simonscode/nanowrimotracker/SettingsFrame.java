@@ -18,12 +18,12 @@ class SettingsFrame extends JFrame {
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent event) {
                 SettingsFrame.this.setVisible(false);
-                if (NaNoWriMoTracker.configIsSane()) {
-                    Config.get().firstRun = false;
-                    Config.get().save();
+                if (NaNoWriMoTracker.configIsSufficient()) {
+                    Storage.get().firstRun = false;
+                    Storage.get().save();
                     NaNoWriMoTracker.switchFromSettingsToLogWindow();
                 } else {
-                    //TODO: Inform user what config values are missing
+                    JOptionPane.showMessageDialog(null, String.format("Configuration incomplete.%nValues have not been saved."), "Configuration incomplete", JOptionPane.WARNING_MESSAGE);
                     NaNoWriMoTracker.shutdown();
                 }
             }
