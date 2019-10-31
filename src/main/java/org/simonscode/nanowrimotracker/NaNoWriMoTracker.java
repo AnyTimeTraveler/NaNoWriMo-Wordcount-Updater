@@ -43,14 +43,16 @@ public class NaNoWriMoTracker {
 
     private static void cliMode() {
         if (!configIsSufficient()) {
-            System.err.println("Please configure the program first.\nThere should be a config file for you to edit.\nAlternatively, you can configure this software via the GUI.");
+            System.err.println("Missing or incomplete configuration!\n\nPlease configure the program first.\nThere should be a config file for you to edit.\nAlternatively, you can configure this software via the GUI.");
+            System.exit(-1);
             return;
         }
         IWordcounter currentWC = getSelectedWordcounter();
         if (currentWC == null) {
             storage.firstRun = true;
             storage.save();
-            System.err.println("Unable to load your project!\nPlease check the configuration of the program.\nThere should be a config file for you to edit.\nAlternatively, you can configure this software via the GUI.");
+            System.err.println("Unable to load project!\nPlease check the configuration of the program.\nThere should be a config file for you to edit.\nAlternatively, you can configure this software via the GUI.");
+            System.exit(-1);
             return;
         }
         storage.wordCountIndexAtSessionStart = storage.wordCountAmounts.size() < 2 ? 0 : storage.wordCountAmounts.get(storage.wordCountAmounts.size() - 1);
