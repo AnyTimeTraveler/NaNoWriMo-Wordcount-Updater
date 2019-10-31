@@ -29,7 +29,7 @@ public class Storage {
     long timeBetweenUpdates = 1L;
     TimeUnit timeUnitBetweenUpdates = TimeUnit.MINUTES;
 
-    ServerSelection serverSelection = ServerSelection.OFFICIAL;
+    ServerSelection serverSelection = ServerSelection.OFFLINE;
     String officialUsername = "";
     String officialSecretKey = "";
     String privateServerAddress = "";
@@ -67,7 +67,7 @@ public class Storage {
                 instance = new Storage();
                 instance.save();
             }
-            System.out.println("Generated a fresh template configuration file.");
+            System.out.println("Generated a fresh template configuration file.\nPlease remember to set 'firstRun' to false, if you are editing it by hand.");
             return;
         } catch (JsonIOException | JsonSyntaxException e) {
             System.err.println("Storage file improperly formatted!");
