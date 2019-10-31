@@ -67,6 +67,7 @@ public class Storage {
                 instance = new Storage();
                 instance.save();
             }
+            System.out.println("Generated a fresh template configuration file.");
             return;
         } catch (JsonIOException | JsonSyntaxException e) {
             System.err.println("Storage file improperly formatted!");
