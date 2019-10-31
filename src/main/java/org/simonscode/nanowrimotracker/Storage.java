@@ -26,8 +26,8 @@ public class Storage {
     String projectType = "";
     String secondarySelection = "";
 
-    long timeBetweenUpdates = 0L;
-    TimeUnit timeUnitBetweenUpdates = TimeUnit.SECONDS;
+    long timeBetweenUpdates = 1L;
+    TimeUnit timeUnitBetweenUpdates = TimeUnit.MINUTES;
 
     ServerSelection serverSelection = ServerSelection.OFFICIAL;
     String officialUsername = "";
@@ -36,6 +36,7 @@ public class Storage {
 
     int wordcountOffset = 0;
     int wordcountAtStartOfDay = 0;
+    int lastDay = 30;
 
     List<WordGoal> customWordGoals = new ArrayList<>();
 
@@ -112,7 +113,7 @@ public class Storage {
         return instance;
     }
 
-    private void save() {
+    void save() {
         try {
             PrintWriter pw = new PrintWriter(DATA_FILENAME);
             final Iterator<Date> timesIterator = wordCountTimes.iterator();

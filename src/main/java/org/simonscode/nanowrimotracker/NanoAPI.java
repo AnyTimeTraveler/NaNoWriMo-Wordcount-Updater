@@ -24,7 +24,7 @@ class NanoAPI {
             connection.addRequestProperty("name", username);
             connection.addRequestProperty("wordcount", wc);
         } catch (IOException | NoSuchAlgorithmException e) {
-            NaNoWriMoTracker.getLogWindow().log("\nERROR while updating. Please check if your username and secret key in the settings are correct.\n");
+            NaNoWriMoTracker.getLogWindow().log("\nERROR while updating. Please check if your username and secret key in the settings are correct.");
             e.printStackTrace();
         }
     }

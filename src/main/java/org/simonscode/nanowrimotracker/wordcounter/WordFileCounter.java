@@ -32,7 +32,11 @@ public class WordFileCounter implements IWordcounter {
     public int getWordcount(File file) throws Exception {
         BodyContentHandler handler = new BodyContentHandler(-1);
         new AutoDetectParser().parse(new FileInputStream(file), handler, new org.apache.tika.metadata.Metadata(), new ParseContext());
-        return handler.toString().trim().split("\\s+|/").length;
+        final String trimmedText = handler.toString().trim();
+        if (trimmedText.isEmpty()) {
+            return 0;
+        }
+        return trimmedText.split("\\s+|/").length;
     }
 
     @Override

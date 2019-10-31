@@ -2,8 +2,8 @@ package org.simonscode.nanowrimotracker;
 
 class WordGoal {
 
-    private String name = "";
-    private int targetWordcount = 0;
+    private String name = "New Goal";
+    private int targetWordcount = 100;
     private Type type = Type.FIXED;
     private int lastReach = 0;
 
@@ -18,7 +18,7 @@ class WordGoal {
     }
 
     boolean hasBeenReached(int currentWordcount) {
-        if (type == Type.FIXED && currentWordcount >= targetWordcount) {
+        if (type == Type.FIXED && currentWordcount >= targetWordcount && lastReach == 0) {
             lastReach = currentWordcount;
             return true;
         } else if (type == Type.REPEATING && currentWordcount >= targetWordcount + lastReach) {
@@ -56,8 +56,7 @@ class WordGoal {
 
     public enum Type {
         FIXED,
-        REPEATING,
-        NONE,
+        REPEATING
     }
 
     String getCompletionMessage() {
@@ -66,7 +65,6 @@ class WordGoal {
                 return name;
             case REPEATING:
                 return String.format("%s %d times", name, lastReach / targetWordcount);
-            case NONE:
             default:
                 return "Error";
         }

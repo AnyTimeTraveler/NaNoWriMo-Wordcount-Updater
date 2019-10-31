@@ -24,6 +24,9 @@ public class TextFileCounter implements IWordcounter {
 
     @Override
     public int getWordcount(File file) throws Exception {
+        if (Files.readAllBytes(file.toPath()).length == 0) {
+            return 0;
+        }
         return String.join("\n", Files.readAllLines(file.toPath())).trim().split("\\s+|/").length;
     }
 

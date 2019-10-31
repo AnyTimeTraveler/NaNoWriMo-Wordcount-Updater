@@ -3,9 +3,7 @@ package org.simonscode.nanowrimotracker;
 import org.simonscode.nanowrimotracker.wordcounter.IWordcounter;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 public class WordcountChecker extends Thread {
 
@@ -52,14 +50,13 @@ public class WordcountChecker extends Thread {
                             break;
                     }
 
+                    NaNoWriMoTracker.getLogWindow().showUpdatedWordcount(lastWordcount, wordcount);
                     checkAndNotifyWordgoals(wordcount);
                     Storage.get().save();
-                    NaNoWriMoTracker.getLogWindow().showUpdatedWordcount(lastWordcount, wordcount);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                //TODO: Better error handling
-                NaNoWriMoTracker.getLogWindow().log("Error: ", e.getMessage());
+                NaNoWriMoTracker.getLogWindow().log("Error: " + e.getMessage());
             }
             try {
                 sleep(Storage.get().timeUnitBetweenUpdates.toMillis(Storage.get().timeBetweenUpdates));
@@ -69,15 +66,13 @@ public class WordcountChecker extends Thread {
     }
 
     private void checkAndNotifyWordgoals(int wordcount) {
-        List<WordGoal> toRemove = new ArrayList<>();
         for (WordGoal wg : Storage.get().customWordGoals) {
             if (wg.hasBeenReached(wordcount)) {
-                NaNoWriMoTracker.getTrayManager().pushNotification("Goal reached!", "You have reached your goal:\n" + wg.getCompletionMessage());
-                toRemove.add(wg);
+                final String message = "You have reached your goal:\n" + wg.getCompletionMessage() + "! :)";
+                NaNoWriMoTracker.getTrayManager().pushNotification("Goal reached!", message);
+                NaNoWriMoTracker.getLogWindow().log(message);
             }
         }
-
-        Storage.get().customWordGoals.removeAll(toRemove);
     }
 
     /**
